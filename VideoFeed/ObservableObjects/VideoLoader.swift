@@ -21,7 +21,7 @@ class VideoLoader: ObservableObject {
           let asset = AVURLAsset(url: url)
           let keys = ["playable", "duration", "tracks"]
 
-          asset.loadValuesAsynchronously(forKeys: keys) {
+          asset.loadValuesAsynchronously(forKeys: keys) { [self] in
               var error: NSError? = nil
               let status = asset.statusOfValue(forKey: "playable", error: &error)
               

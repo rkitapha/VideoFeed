@@ -12,6 +12,7 @@ import SwiftUI
 class VideoFeedViewModel: ObservableObject {
     
     @Published var videos: [Video] = []
+    @Published var errorMessage: String = ""
     
     private let apiService: ApiServiceProtocol
     
@@ -24,10 +25,15 @@ class VideoFeedViewModel: ObservableObject {
     ///call get videos from api 
     func getVideos() {
         Task {
-            if let videoURLS = try await apiService.getVideos() {
-                for videoURL in videoURLS.prefix(5) {
-                    videos.append(Video(urlString: videoURL))
+            do {
+                if let videoURLS = try await apiService.getVideos() {
+                    for videoURL in videoURLS {
+                        videos.append(Video(urlString: videoURL))
+                    }
                 }
+            }
+            catch {
+                errorMessage = error.localizedDescription
             }
         }
     }

@@ -18,42 +18,54 @@ struct VideoFeedView: View {
     
      var body: some View {
          GeometryReader { proxy in
-             ScrollViewReader { scrollProxy in
-                 ScrollView(.vertical, showsIndicators: false) {
-                     LazyVStack(spacing: 0) {
-                         //add the first few videos to the end and to the beginning so that when it reaches the end of the scroll there is no flickering
-                         let loopedVideos = viewModel.videos.suffix(bufferCount) + viewModel.videos + viewModel.videos.prefix(bufferCount)
-                         ForEach(loopedVideos.enumerated(), id: \.offset) { index, video in
-                             VideoPlayerView(player: videoLoader.players[index] ?? AVPlayer()).containerRelativeFrame([.horizontal, .vertical])
-                                 .id(index)
-                                 .frame(height: proxy.size.height)
-                                 .onAppear {
-                                     guard !isResetting else { return }
-                                     // Preload current + next 2 videos
-                                     for i in index..<(index + 2) {
-                                         let url = URL(string: viewModel.videos[i % viewModel.videos.count].urlString)!
-                                         videoLoader.preloadVideo(at: i, url: url)
+             if !viewModel.errorMessage.isEmpty {
+                 VStack {
+                     Spacer()
+                     Text(viewModel.errorMessage).foregroundColor(.red)
+                     .frame(maxWidth: .infinity)
+                     .multilineTextAlignment(.center)
+                     Spacer()
+                 }
+             }
+             else {
+                 ScrollViewReader { scrollProxy in
+                     ScrollView(.vertical, showsIndicators: false) {
+                         LazyVStack(spacing: 0) {
+                             //add the first few videos to the end and to the beginning so that when it reaches the end of the scroll there is no flickering
+                             let loopedVideos = viewModel.videos + viewModel.videos.prefix(bufferCount)
+                             ForEach(loopedVideos.enumerated(), id: \.offset) { index, video in
+                                 VideoPlayerView(player: videoLoader.players[index] ?? AVPlayer()).containerRelativeFrame([.horizontal, .vertical])
+                                     .id(index)
+                                     .frame(height: proxy.size.height)
+                                     .onAppear {
+                                         guard !isResetting else { return }
+                                         // Preload current + next 2 videos
+                                         for i in index..<(index + 2) {
+                                             let url = URL(string: viewModel.videos[i % viewModel.videos.count].urlString)!
+                                             videoLoader.preloadVideo(at: i, url: url)
+                                         }
+                                         // Clean up old video players
+                                         videoLoader.cleanupUnusedPlayers(keeping: Array((index-1)...(index+3)))
+                                         currentIndex = index
+                                         // Handle looping
+                                         if index == 0 {
+                                             resetScroll(to: viewModel.videos.count, scrollProxy: scrollProxy)
+                                         } else if index == loopedVideos.count - 1 {
+                                             resetScroll(to: 0, scrollProxy: scrollProxy)
+                                         }
                                      }
-                                     // Clean up old video players
-                                     videoLoader.cleanupUnusedPlayers(keeping: Array((index-1)...(index+3)))
-                                     currentIndex = index
-                                     // Handle looping
-                                       if index == 0 {
-                                           resetScroll(to: viewModel.videos.count, scrollProxy: scrollProxy)
-                                       } else if index == loopedVideos.count - 1 {
-                                           resetScroll(to: 0, scrollProxy: scrollProxy)
-                                       }
                              }
                          }
                      }
+                     //If the next video is not ready, dont allow the user to scroll
+                     .scrollDisabled(
+                        !videoLoader.isReady(index: currentIndex + 1)
+                     )
                  }
-                 //If the next video is not ready, dont allow the user to scroll
-                 .scrollDisabled(
-                    !videoLoader.isReady(index: currentIndex + 1)
-                 )
              }
          }.onAppear {
              viewModel.getVideos()
+             
          }
         .scrollTargetBehavior(.paging)
         .ignoresSafeArea()
