@@ -7,7 +7,7 @@
     - There is one Video model that stores the video url with a UUID and a Video Response model that handles the json for getting the video urls from the api
 
 **Memory Management**
-  - Firstly, none of the videos or video url are stored locally, they only live within the view. The videos from the url are preloaded only when needed. If I were to store the videos locally or cached them, the memory would grow exponentially espeically with alot of big video files
+  - Firstly, none of the videos or video url are stored locally, they only live within the view. The videos from the url are preloaded only when needed. If I were to store the videos locally or cached them, the memory would grow exponentially, given some big video sizes
   - I have preloaded the videos and stored them as AVPlayers in a players dictionary so that you can access previously loaded players when you swipe up and down in the video feed
   - I use LazyVStack to prevent unnecessary memory usage and slow rendering of the videoes, since we could have a large list of videos. As well as to try to keep the scrolling smooth
 
