@@ -32,7 +32,7 @@ struct VideoFeedView: View {
                      ScrollView(.vertical, showsIndicators: false) {
                          LazyVStack(spacing: 0) {
                              //add the first few videos to the end and to the beginning so that when it reaches the end of the scroll there is no flickering
-                             let loopedVideos = viewModel.videos + viewModel.videos.prefix(bufferCount)
+                             let loopedVideos = viewModel.videos.suffix(bufferCount) + viewModel.videos + viewModel.videos.prefix(bufferCount)
                              ForEach(loopedVideos.enumerated(), id: \.offset) { index, video in
                                  VideoPlayerView(player: videoLoader.players[index] ?? AVPlayer()).containerRelativeFrame([.horizontal, .vertical])
                                      .id(index)
@@ -48,9 +48,7 @@ struct VideoFeedView: View {
                                          videoLoader.cleanupUnusedPlayers(keeping: Array((index-1)...(index+3)))
                                          currentIndex = index
                                          // Handle looping
-                                         if index == 0 {
-                                             resetScroll(to: viewModel.videos.count, scrollProxy: scrollProxy)
-                                         } else if index == loopedVideos.count - 1 {
+                                         if index == loopedVideos.count - 1 {
                                              resetScroll(to: 0, scrollProxy: scrollProxy)
                                          }
                                      }
