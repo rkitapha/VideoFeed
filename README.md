@@ -7,8 +7,8 @@
     - There is one Video model that stores the video url with a UUID and a Video Response model that handles the json for getting the video urls from the api
 
 **Memory Management**
-  - Firstly, none of the videos or video url are stored locally, they only live within the view. The videos from the url are preloaded only when needed. If I were to store the videos locally or cached them, the memory would grow exponentially espeically with alot of big video files
-  - I have preloaded the videos and stored them as AVPlayers in a players dictionary so that you can access previously loaded players when you swipe up and down in the video feed
+  - Firstly, none of the videos or video url are stored locally, they only live within the view. The videos from the url are preloaded only when needed. If I were to store the videos locally or cached them, the memory would grow exponentially, given some big video sizes
+  - I have preloaded the videos and stored them as AVPlayers in a dictionary with the index as the key so that you can access previously loaded players when you swipe up and down in the video feed
   - I use LazyVStack to prevent unnecessary memory usage and slow rendering of the videoes, since we could have a large list of videos. As well as to try to keep the scrolling smooth
 
 **Strategy for Smooth Transitions**
@@ -20,5 +20,6 @@
 **Key design decisions and trade-offs**
 - Not storing the videos or video urls locally with something like Core Data or saving the videos to the cache. While this does save memory, users wouldnt be able to play the videos if they have no network connectivity
 - Using a scroll view for the paging effect and embedding the LazyVstack inside of it. I could have instead added a gesture to the LazyVStack and not have the scroll view at all. I would have more control over the user scrolling and gesture velocity but I wouldnt be able to preciously mimic the paging effect and it would require a lot more code and complexity
-- Instead of adding the same existing the videos to the video array in the list for the infinite scrolling, I chose to scroll to the first video. This does save a lot of memory for the array but in exchange, the transitioning from the last video to the first video is not the same as the other video transitions 
+- Instead of adding the same existing the videos to the video array in the list for the infinite scrolling, I chose to scroll to the first video. This does save a lot of memory for the array but in exchange, the transitioning from the last video to the first video has a slight flickering
+- Preloading the next two videos can sometimes take a while so you are prevented from scrolling to the next video for a few seconds
  
